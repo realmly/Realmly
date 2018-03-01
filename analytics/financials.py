@@ -12,7 +12,7 @@ import numbers
 import pandas as pd
 import sys
 import os
-import util.utilities as util
+import Realmly.util.utilities as util
 
 
 def amortize(loan_amount,rate, number_of_payments = 360, payment_per_year=12, prepayment=None,begin_or_end='end'):
