@@ -563,7 +563,7 @@ def output_projection(result, output_location=None):
         sheet.write(row, col+6, disp['Depreciation Recapture Tax Rate'], percent0)
         row += 1
         sheet.write(row, col, 'Income', bold_blue)
-        sheet.pwrite(row, col + 1, disp['Income Before Tax'], percent1)
+        sheet.write(row, col + 1, disp['Income Before Tax'], percent1)
         sheet.write(row, col + 2, disp['Income After Tax'], percent1)
         row += 1
         sheet.write(row, col, 'Appreciation', bold_blue)
@@ -982,7 +982,7 @@ def project(file, print_flag=False, output_location=None):
     projections = [None]*len(scenarios)
     for i, s in enumerate(scenarios):
         projections[i] = investment_scenario(deal, s, print_flag, output_location)
-
+    print(output_location)
     return deal, scenarios, projections
 
     
