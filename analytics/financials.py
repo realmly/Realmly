@@ -353,7 +353,7 @@ def output_projection(result, output_location=None):
     address_str = address.replace(estr, cstr)
     sc_str = scenario_name.replace(estr,cstr)
 
-    file = '{0:s}/Projects/PROJECTION_{1:s}_{2:s}.xlsx'.format(output_location,address_str,sc_str)
+    file = os.path.join(output_location, 'PROJECTION_{0:s}_{1:s}.xlsx'.format(address_str, sc_str))
     try:
         writer = pd.ExcelWriter( file)
         book = writer.book
@@ -563,7 +563,7 @@ def output_projection(result, output_location=None):
         sheet.write(row, col+6, disp['Depreciation Recapture Tax Rate'], percent0)
         row += 1
         sheet.write(row, col, 'Income', bold_blue)
-        sheet.write(row, col + 1, disp['Income Before Tax'], percent1)
+        sheet.pwrite(row, col + 1, disp['Income Before Tax'], percent1)
         sheet.write(row, col + 2, disp['Income After Tax'], percent1)
         row += 1
         sheet.write(row, col, 'Appreciation', bold_blue)
@@ -614,7 +614,7 @@ def output_projection(result, output_location=None):
 
 
 def investment_scenario(deal, scenario, print_flag=False,
-            output_location=None):
+                        output_location=None):
     if deal is None:
         raise Exception('No deal info')
     if scenario is None:
@@ -975,6 +975,9 @@ def project(file, print_flag=False, output_location=None):
         print("No file found {0:s}".format(file))
         raise FileNotFoundError
 
+    if output_location is None:
+        output_location = os.path.dirname(file)
+        print(output_location)
     deal, scenarios = parse(file)
     projections = [None]*len(scenarios)
     for i, s in enumerate(scenarios):
