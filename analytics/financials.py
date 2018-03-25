@@ -114,6 +114,7 @@ def investment_projection( years, purchase, loan, income, operation, sale, tax, 
                   'Principal Repayments',
                   'Debt Service',
                   'Depreciations',
+                  'Utilities',
                   'Operating Expenses',
                   'Other Expenses',
                   'Total Expenses'
@@ -177,7 +178,14 @@ def investment_projection( years, purchase, loan, income, operation, sale, tax, 
     rent_per_year = rent_per_year * (1-income['vacancy'])
     annual_rents = np.round( rent_per_year * np.exp(np.array(range(years))*np.log(1+rent_inflation)))
     is_projection['Rents'][1:]=annual_rents
-    is_projection['Total Revenues']=is_projection['Rents']+is_projection['Other Incomes']    
+    is_projection['Total Revenues']=is_projection['Rents']+is_projection['Other Incomes']
+
+    # get utility projection
+    util_inflation = income['Utility Inflation']
+    utility = income['Utilities']
+    annual_utilities = utility * np.round( np.exp(np.array(range(years))*np.log(1+util_inflation)))
+    is_projection['Utilities'][1:]=annual_utilities
+
     # asset price
     asset_values = np.round( purchase['price']*np.exp((np.array(range(years+1)))*np.log(sale['appreciation']+1)), 0)
     
@@ -190,7 +198,7 @@ def investment_projection( years, purchase, loan, income, operation, sale, tax, 
     annual_turnover_costs = operation['tenant turnover cost']*np.ones(years)
     annual_insurance_costs = operation['insurance']*asset_values[0]*(np.exp(np.arange(years)*np.log(1+operation['insurance inflation'])))
     annual_maintenance_costs = asset_values[0]*operation['maintenance']*np.exp(np.arange(years)*np.log(1+operation['maintenance inflation']))
-    annual_operating_costs = annual_property_management_fees + annual_turnover_costs + annual_insurance_costs
+    annual_operating_costs = annual_property_management_fees + annual_turnover_costs + annual_insurance_costs + annual_utilities
     annual_operating_costs += annual_maintenance_costs    
     
     is_projection['Insurances'][1:]= np.round(annual_insurance_costs, 0)
@@ -207,8 +215,8 @@ def investment_projection( years, purchase, loan, income, operation, sale, tax, 
     is_projection['Property Taxes'][1:]= np.round( annual_property_taxes, 0)    
     
     # operating income
-    annual_operating_incomes = annual_rents - annual_operating_costs - annual_property_taxes
-    is_projection['Net Operating Incomes']=is_projection['Total Revenues']-is_projection['Operating Expenses']-is_projection['Property Taxes']
+    annual_operating_incomes = annual_rents - annual_operating_costs - annual_property_taxes - annual_utilities
+    is_projection['Net Operating Incomes']=is_projection['Total Revenues']-is_projection['Operating Expenses']-is_projection['Property Taxes'] -is_projection['Utilities']
     
     # total costs
     annual_total_expenses  = annual_operating_costs + annual_property_taxes + annual_interest_expenses[:years]
@@ -325,7 +333,6 @@ def investment_projection( years, purchase, loan, income, operation, sale, tax, 
     
     if print_flag:
         output_projection( s, output_location)
-    
     return s
 
 
@@ -719,10 +726,14 @@ def investment_scenario(deal, scenario, print_flag=False,
     annual_turnover_costs = scenario['Tenant Turnover Costs'] * np.ones(years)
     annual_insurance_costs = scenario['Insurance']*(np.exp(np.arange(years) *
         np.log(1 + scenario['Insurance Inflation'])))
+    annual_utility_costs = scenario['Utilities'] * (np.exp(np.arange(years) *
+        np.log(1 + scenario['Utility Inflation'])))
     annual_maintenance_costs = scenario['Maintenance'] * np.exp(
         np.arange(years) * np.log(1 + scenario['Maintenance Inflation']))
+    is_projection['Utilities'][1:] = annual_utility_costs
     annual_operating_costs = annual_property_management_fees + annual_turnover_costs + annual_insurance_costs
     annual_operating_costs += annual_maintenance_costs
+    annual_operating_costs += annual_utility_costs
 
     is_projection['Insurances'][1:] = np.round(annual_insurance_costs, 0)
     is_projection['Maintenance'][1:] = annual_maintenance_costs.round(0)
