@@ -841,7 +841,7 @@ def investment_scenario(deal, scenario, print_flag=False,
     # IRR - internal rate of returns: after tax
     ivec = np.zeros(years + 1)
     ivec[0] = -initial_equity
-    ivec[1:] = annual_after_tax_cash_flows
+    ivec[1:] = annual_after_tax_cash_flows - is_projection['Principal Repayments'][1:]
     ivec[-1] += net_sales - annual_loan_balances[years - 1] - tax_upon_sales
     irr_after_tax = round(np.irr(ivec), 3)
     disposal.update({'IRR After Tax': irr_after_tax})
@@ -849,7 +849,7 @@ def investment_scenario(deal, scenario, print_flag=False,
     # IRR - internal rate of returns: before tax
     itvec = np.zeros(years + 1)
     itvec[0] = -initial_equity
-    itvec[1:] = annual_before_tax_cash_flows
+    itvec[1:] = annual_before_tax_cash_flows - is_projection['Principal Repayments'][1:]
     itvec[-1] += net_sales - annual_loan_balances[years - 1]
     irr_pre_tax = round(np.irr(itvec), 3)
     disposal.update({'IRR Before Tax': irr_pre_tax})
@@ -857,7 +857,7 @@ def investment_scenario(deal, scenario, print_flag=False,
     # dividend
     dvec = np.zeros(years + 1)
     dvec[0] = -initial_equity
-    dvec[1:] = annual_before_tax_cash_flows + is_projection['Principal Repayments'][1:]
+    dvec[1:] = annual_before_tax_cash_flows #+ is_projection['Principal Repayments'][1:]
     dvec[-1] += initial_equity
     dirr = round( np.irr(dvec), 3)
     disposal.update({'Income Before Tax': dirr})
