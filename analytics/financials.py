@@ -640,6 +640,8 @@ def investment_scenario(deal, scenario, print_flag=False,
         'Rents', 'Other Incomes',
         'Maintenance', 'Utilities',
         'Turnover Costs',
+        'Advertising',
+        'Administrative',
         'Realm Fees',
         'Property Management Fees',
         'Property Taxes', 'Other taxes',
@@ -724,6 +726,8 @@ def investment_scenario(deal, scenario, print_flag=False,
     annual_property_management_fees = scenario['Property Management Fee'] * annual_rents
     annual_realm_fees = scenario['Realmly Fee'] * annual_rents
     annual_turnover_costs = scenario['Tenant Turnover Costs'] * np.ones(years)
+    annual_advertising = scenario['Advertising'] * np.ones(years)
+    annual_administrative = scenario['Administrative'] * np.ones(years)
     annual_insurance_costs = scenario['Insurance']*(np.exp(np.arange(years) *
         np.log(1 + scenario['Insurance Inflation'])))
     annual_utility_costs = scenario['Utilities'] * (np.exp(np.arange(years) *
@@ -738,11 +742,14 @@ def investment_scenario(deal, scenario, print_flag=False,
     is_projection['Insurances'][1:] = np.round(annual_insurance_costs, 0)
     is_projection['Maintenance'][1:] = annual_maintenance_costs.round(0)
     is_projection['Turnover Costs'][1:] = annual_turnover_costs.round(0)
+    is_projection['Advertising'][1:] = annual_advertising.round(0)
+    is_projection['Administrative'][1:] = annual_administrative.round(0)
     is_projection['Property Management Fees'][1:] = annual_property_management_fees.round(0)
     is_projection['Realm Fees'][1:] = annual_realm_fees.round(0)
     is_projection['Operating Expenses'] = is_projection['Insurances'] + is_projection['Maintenance'] + \
                                           is_projection['Realm Fees'] + is_projection['Property Management Fees'] + \
-                                          is_projection['Turnover Costs']
+                                          is_projection['Turnover Costs'] + is_projection['Utilities'] + \
+                                          is_projection['Advertising'] + is_projection['Administrative']
 
     # taxes
     annual_property_taxes = scenario['Property Tax'] * (
