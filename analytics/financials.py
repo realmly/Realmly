@@ -952,7 +952,7 @@ def parse(file):
              'Type','Number of Units','List Price','Property Tax',
              'Land Value','Class','Type') # deal keys
     skeys = ('Purchase Price', 'Purchase Costs',
-             'Loan','Rate','Amortization Period','Payments Per Year',
+             'Loan','Rate','Amortization Period','Payments Per Year', 'Interests Only', 'IO Period',
              'Rent','Rent Inflation', 'Rent Payments Per Year', 'Vacancy','Other Income',
              'Property Tax', 'Property Tax Inflation',
              'Insurance', 'Insurance Inflation',
@@ -964,7 +964,8 @@ def parse(file):
              'Capital Gain Tax','Income Tax','Depreciation Recapture Tax'
              ) # scenario keys
     int_keys = ('Number of Units','Years',
-                'Rent Payment Per Year','Payments Per Year')
+                'Rent Payment Per Year','Payments Per Year', 'IO Period')
+    logical_keys = ['Interests Only']
     deal = {}
     for key in dkeys:
         val = util.get_value_by_key(dsheet,key,'Key','Value')
@@ -988,6 +989,11 @@ def parse(file):
                     val = val[0]
                     if key in int_keys:
                         val = int(val)
+                if key in logical_keys:
+                    if val > 0:
+                        val = True
+                    else:
+                        val = False
                 scenario.update({key: val})
             if scenario:
                 scenario.update({'Scenario Name': sheet_name.title()})
