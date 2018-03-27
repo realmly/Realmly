@@ -15,7 +15,7 @@ import os
 import Realmly.util.utilities as util
 
 
-def amortize(loan_amount,rate, number_of_payments = 360, payment_per_year=12, prepayment=None,begin_or_end='end'):
+def amortize(loan_amount, rate, number_of_payments=360, payment_per_year=12, prepayment=None, begin_or_end='end'):
     '''
     amortize(loan_amount, rate, number_of_payments = 360, payment_per_year=12, prepayment=[], begin_or_end = 'end')
     
@@ -79,18 +79,47 @@ def amortize(loan_amount,rate, number_of_payments = 360, payment_per_year=12, pr
         total_payments[i,1]=interests[i,1]+principal_payments[i,1]
         
     if prepaying:
-        print( "Prepayments reduced pay periods from %d to %d" %(number_of_payments,np.count_nonzero(total_payments[:,1])))
-        print( "Total interests payment changed from %.0f to %.0f"%(sum(interests[:,0]),sum(interests[:,1])))
+        print("Prepayments reduced pay periods from %d to %d" % (number_of_payments,np.count_nonzero(total_payments[:,1])))
+        print("Total interests payment changed from %.0f to %.0f" % (sum(interests[:,0]),sum(interests[:,1])))
     else:    
         total_payments = total_payments[:,0]
         interests = interests[:,0]
         principal_payments = principal_payments[:,0]
         balances = balances[:,0]
-            
 
+    total_payments = total_payments.reshape((total_payments.size, 1))
+    interests = interests.reshape((interests.size, 1))
+    principal_payments = principal_payments.reshape((principal_payments.size, 1))
+    balances = balances.reshape((balances.size, 1))
     return total_payments, interests, principal_payments, balances
 
-    
+
+def interest_only_loan(int_only_period, loan_amount, rate, number_of_payments=360,
+                       payment_per_year=12, prepayment=None, begin_or_end='end'):
+    """
+
+    :param int_only_period:
+    :param loan_amount:
+    :param rate:
+    :param number_of_payments:
+    :param payment_per_year:
+    :param prepayment:
+    :param begin_or_end:
+    :return:
+    """
+    io_interests = rate/payment_per_year * loan_amount * np.ones((int_only_period, 1))
+    io_principals = np.zeros((int_only_period, 1))
+    io_balances = loan_amount * np.ones((int_only_period, 1))
+    io_total = io_interests + io_principals
+    remaining_payments = number_of_payments - int_only_period
+    total_payments, interests, principal_payments, balances = amortize(loan_amount, rate, remaining_payments,
+                                                                       payment_per_year, prepayment, begin_or_end)
+    total_payments = np.vstack((io_total, total_payments))
+    interests = np.vstack((io_interests, interests))
+    principal_payments = np.vstack((io_principals, principal_payments))
+    balances = np.vstack((io_balances, balances))
+
+    return total_payments, interests, principal_payments, balances
 # financial projection for real estate investments
 # predicated
 
@@ -687,9 +716,15 @@ def investment_scenario(deal, scenario, print_flag=False,
     amortizing_years = int(scenario['Amortization Period'])
     payments_per_year = int(scenario['Payments Per Year'])
     number_of_payments = amortizing_years * payments_per_year
-    mortgage_payments, interest_expenses, principal_payments, loan_balances = amortize(initial_loan, interest_rate,
+    if scenario['Interests Only']:
+        io_payments = scenario['IO Period'] * payments_per_year
+        mortgage_payments, interest_expenses, principal_payments, loan_balances = interest_only_loan(io_payments,
+                                    initial_loan, interest_rate, number_of_payments, payments_per_year)
+    else:
+        mortgage_payments, interest_expenses, principal_payments, loan_balances = amortize(initial_loan, interest_rate,
                                                                                        number_of_payments,
                                                                                        payments_per_year)
+
     annual_loan_payments = mortgage_payments.reshape((amortizing_years, payments_per_year))
     annual_loan_payments = np.round(np.sum(annual_loan_payments, 1), 0)
     annual_interest_expenses = interest_expenses.reshape((amortizing_years, payments_per_year))
